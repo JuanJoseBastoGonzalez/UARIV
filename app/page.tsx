@@ -187,33 +187,54 @@ export default function Page() {
   }
 
   function saveEditedRow() {
-    if (!editingRow) return;
+    if (!editingRow || editingIndex === null) return;
     setEditLoading(true);
+
+    // La PK es CODIGO-HOGAR del registro original (no se puede cambiar)
+    const originalRow = searchResults[editingIndex];
+    const rowToSend: RegistroRow = {
+      "CODIGO-HOGAR": originalRow["CODIGO-HOGAR"],
+    };
+    // Solo enviar los campos editables que cambiaron
+    for (const f of EDITABLE_FIELDS) {
+      rowToSend[f.key] = editingRow[f.key] ?? "";
+    }
+    // Incluir USUARIO VIVANTO
+    rowToSend["USUARIO VIVANTO"] = editingRow["USUARIO VIVANTO"] ?? originalRow["USUARIO VIVANTO"] ?? "";
+
+    const payload = {
+      Action: "Edit",
+      Properties: {
+        Locale: "es-CO",
+        Timezone: "America/Bogota",
+      },
+      Rows: [rowToSend],
+    };
+
+    console.log("[v0] Edit payload:", JSON.stringify(payload, null, 2));
 
     fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        Action: "Edit",
-        Properties: {
-          Locale: "es-CO",
-          Timezone: "America/Bogota",
-        },
-        Rows: [editingRow],
-      }),
+      body: JSON.stringify(payload),
     })
       .then(async (res) => {
         const text = await res.text();
-        console.log("[v0] Edit response:", text);
-        // Actualizar la fila local
+        console.log("[v0] Edit response status:", res.status);
+        console.log("[v0] Edit response body:", text);
+        if (!res.ok) {
+          throw new Error(text);
+        }
+        // Actualizar la fila local con los datos editados
+        const updatedRow = { ...originalRow, ...rowToSend };
         setSearchResults((prev) =>
-          prev.map((r, i) => (i === editingIndex ? { ...editingRow } : r))
+          prev.map((r, i) => (i === editingIndex ? updatedRow : r))
         );
         setEditingRow(null);
         setEditingIndex(null);
       })
       .catch((err) => {
-        console.error("Error al editar:", err);
+        console.error("[v0] Error al editar:", err);
         alert("Error al actualizar el registro");
       })
       .finally(() => setEditLoading(false));
@@ -311,8 +332,8 @@ export default function Page() {
       .finally(() => setLoading(false));
   }
 
+  // CODIGO-HOGAR es la Primary Key, no se edita
   const EDITABLE_FIELDS: { key: string; label: string }[] = [
-    { key: "CODIGO-HOGAR", label: "Codigo Hogar" },
     { key: "USUARIO", label: "Nombre" },
     { key: "CEDULA", label: "Cedula" },
     { key: "TIPIFICACION", label: "Tipificacion" },
@@ -623,6 +644,15 @@ export default function Page() {
                       {editingIndex === idx && editingRow ? (
                         /* ===== EDITING MODE ===== */
                         <div className="epic-edit-form">
+                          <div className="epic-edit-field">
+                            <label className="epic-label">Codigo Hogar (PK)</label>
+                            <input
+                              className="epic-input"
+                              value={String(row["CODIGO-HOGAR"] ?? "")}
+                              disabled
+                              style={{ opacity: 0.5, cursor: "not-allowed" }}
+                            />
+                          </div>
                           {EDITABLE_FIELDS.map((f) => (
                             <div key={f.key} className="epic-edit-field">
                               <label className="epic-label">{f.label}</label>
