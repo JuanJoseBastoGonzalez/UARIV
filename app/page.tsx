@@ -40,6 +40,7 @@ const USUARIOS_VIVANTO: { nombre: string; usuario: string }[] = [
 ]
   ;
 
+
 interface RegistroRow {
   "USUARIO-VIVANTO": string;
   "CODIGO-HOGAR": string;
