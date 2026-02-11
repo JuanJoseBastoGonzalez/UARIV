@@ -54,6 +54,7 @@ interface RegistroRow {
 }
 
 export default function Page() {
+  const [mounted, setMounted] = useState(false);
   const [usuarioData, setUsuarioData] = useState<{
     nombre: string;
     usuario: string;
@@ -81,7 +82,7 @@ export default function Page() {
   const [editLoading, setEditLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
 
-  // Restore session
+  // Restore session after mount (avoids hydration mismatch)
   useEffect(() => {
     const saved = localStorage.getItem("vivanto_session");
     if (saved) {
@@ -91,6 +92,7 @@ export default function Page() {
         localStorage.removeItem("vivanto_session");
       }
     }
+    setMounted(true);
   }, []);
 
   // ========== LOGIN ==========
