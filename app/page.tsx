@@ -2,15 +2,21 @@
 
 import { useState, type FormEvent, type ChangeEvent } from "react";
 
+const API_URL =
+  "https://api.appsheet.com/api/v2/apps/a6401217-8537-47b2-bd5c-bbef3d515087/tables/Table%201/Action";
+const API_KEY = "V2-u5e7d-LdN4H-ttZEx-A6ea4-BRY8z-6orsP-YHqgI-wCgK4";
+
 export default function Page() {
   const [form, setForm] = useState({
     codigoHogarSearch: "",
     codigoHogar: "",
     nombreVictima: "",
     cedula: "",
-    tipificacion: "",
+    tipificacion: "EXITOSA",
     telefono: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   function handleChange(e: ChangeEvent<HTMLInputElement>) {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -18,12 +24,97 @@ export default function Page() {
 
   function searchHogar(e: FormEvent) {
     e.preventDefault();
-    console.log("Buscando hogar:", form.codigoHogarSearch);
+    setSearchLoading(true);
+
+    fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        applicationAccessKey: API_KEY,
+      },
+      body: JSON.stringify({
+        Action: "Find",
+        Properties: {
+          Locale: "es-CO",
+          Timezone: "America/Bogota",
+        },
+        Rows: [{ "CODIGO-HOGAR": form.codigoHogarSearch }],
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Resultado busqueda:", data);
+        alert(`Resultado: ${JSON.stringify(data)}`);
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("Error al buscar");
+      })
+      .finally(() => setSearchLoading(false));
   }
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    console.log("Datos enviados:", form);
+    setLoading(true);
+
+    const usuario = localStorage.getItem("usuario");
+    const date = new Date().toLocaleDateString("es-CO", {
+      timeZone: "America/Bogota",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+
+    const objeto = {
+      "USUARIO-VIVANTO": usuario,
+      "CODIGO-HOGAR": form.codigoHogar,
+      USUARIO: form.nombreVictima,
+      CEDULA: form.cedula,
+      TIPIFICACION: form.tipificacion,
+      FECHA: date,
+      RESPONSABLE: "",
+      "TELEFONO-CELULAR": form.telefono,
+      URL: "",
+    };
+
+    const data = {
+      Action: "Add",
+      Properties: {
+        Locale: "es-CO",
+        Timezone: "America/Bogota",
+      },
+      Rows: [objeto],
+    };
+
+    localStorage.setItem("data", JSON.stringify(data));
+
+    fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        applicationAccessKey: API_KEY,
+      },
+      body: JSON.stringify(data),
+    })
+      .then(async (response) => {
+        const text = await response.text();
+        console.log("Respuesta AppSheet:", text);
+        alert("Registro enviado correctamente");
+      })
+      .catch((error) => {
+        console.error("Error al enviar:", error);
+        alert("Error al enviar los datos");
+      })
+      .finally(() => setLoading(false));
+
+    setForm({
+      codigoHogar: "",
+      codigoHogarSearch: "",
+      nombreVictima: "",
+      cedula: "",
+      tipificacion: "EXITOSA",
+      telefono: "",
+    });
   }
 
   return (
@@ -66,8 +157,12 @@ export default function Page() {
               onChange={handleChange}
               placeholder="Buscar por codigo de hogar..."
             />
-            <button type="submit" className="epic-btn epic-btn-secondary">
-              Buscar
+            <button
+              type="submit"
+              className="epic-btn epic-btn-secondary"
+              disabled={searchLoading}
+            >
+              {searchLoading ? "Buscando..." : "Buscar"}
             </button>
           </form>
 
@@ -147,8 +242,12 @@ export default function Page() {
               />
             </div>
 
-            <button type="submit" className="epic-btn epic-btn-primary">
-              Enviar Registro
+            <button
+              type="submit"
+              className="epic-btn epic-btn-primary"
+              disabled={loading}
+            >
+              {loading ? "Enviando..." : "Enviar Registro"}
             </button>
           </form>
         </div>
