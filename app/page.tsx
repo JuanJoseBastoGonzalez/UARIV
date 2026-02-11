@@ -539,8 +539,8 @@ export default function Page() {
                 }
               >
                 <option value="EXITOSA">EXITOSA</option>
-                <option value="EXITOSA SIN TIPIFICAR">
-                  EXITOSA SIN TIPIFICAR
+                <option value="EXITOSA SIN TIPIFICAS">
+                  EXITOSA SIN TIPIFICAS
                 </option>
               </select>
             </div>
@@ -642,8 +642,8 @@ export default function Page() {
                                   }
                                 >
                                   <option value="EXITOSA">EXITOSA</option>
-                                  <option value="EXITOSA SIN TIPIFICAR">
-                                    EXITOSA SIN TIPIFICAR
+                                  <option value="EXITOSA SIN TIPIFICAS">
+                                    EXITOSA SIN TIPIFICAS
                                   </option>
                                 </select>
                               ) : (
