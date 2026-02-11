@@ -1,12 +1,29 @@
 "use client";
 
-import { useState, type FormEvent, type ChangeEvent } from "react";
+import { useState, useEffect, type FormEvent, type ChangeEvent } from "react";
 
 const API_URL =
   "https://api.appsheet.com/api/v2/apps/a6401217-8537-47b2-bd5c-bbef3d515087/tables/Table%201/Action";
 const API_KEY = "V2-u5e7d-LdN4H-ttZEx-A6ea4-BRY8z-6orsP-YHqgI-wCgK4";
 
+interface RegistroRow {
+  "USUARIO VIVANTO": string;
+  "CODIGO-HOGAR": string;
+  USUARIO: string;
+  CEDULA: string;
+  TIPIFICACION: string;
+  FECHA: string;
+  RESPONSABLE: string;
+  "TELEFONO CELULAR": string;
+  URL: string;
+  [key: string]: string;
+}
+
 export default function Page() {
+  const [usuario, setUsuario] = useState<string | null>(null);
+  const [usuarioInput, setUsuarioInput] = useState("");
+  const [loginLoading, setLoginLoading] = useState(false);
+
   const [form, setForm] = useState({
     codigoHogarSearch: "",
     codigoHogar: "",
@@ -18,6 +35,35 @@ export default function Page() {
   const [loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
 
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [searchResults, setSearchResults] = useState<RegistroRow[]>([]);
+  const [editingRow, setEditingRow] = useState<RegistroRow | null>(null);
+  const [editLoading, setEditLoading] = useState(false);
+
+  // Check localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("usuario");
+    if (saved) setUsuario(saved);
+  }, []);
+
+  function handleLogin(e: FormEvent) {
+    e.preventDefault();
+    if (!usuarioInput.trim()) return;
+    setLoginLoading(true);
+    setTimeout(() => {
+      localStorage.setItem("usuario", usuarioInput.trim());
+      setUsuario(usuarioInput.trim());
+      setLoginLoading(false);
+    }, 600);
+  }
+
+  function handleLogout() {
+    localStorage.removeItem("usuario");
+    setUsuario(null);
+    setUsuarioInput("");
+  }
+
   function handleChange(e: ChangeEvent<HTMLInputElement>) {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
@@ -25,6 +71,10 @@ export default function Page() {
   function searchHogar(e: FormEvent) {
     e.preventDefault();
     setSearchLoading(true);
+
+    const rows = form.codigoHogarSearch.trim()
+      ? [{ "CODIGO-HOGAR": form.codigoHogarSearch }]
+      : [];
 
     fetch(API_URL, {
       method: "POST",
@@ -38,26 +88,72 @@ export default function Page() {
           Locale: "es-CO",
           Timezone: "America/Bogota",
         },
-        Rows: [{ "CODIGO-HOGAR": form.codigoHogarSearch }],
+        Rows: rows,
       }),
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log("Resultado busqueda:", data);
-        alert(`Resultado: ${JSON.stringify(data)}`);
+        const results: RegistroRow[] = Array.isArray(data) ? data : data.Rows || [];
+        setSearchResults(results);
+        setEditingRow(null);
+        setModalOpen(true);
       })
       .catch((err) => {
         console.error(err);
-        alert("Error al buscar");
+        setSearchResults([]);
+        setModalOpen(true);
       })
       .finally(() => setSearchLoading(false));
+  }
+
+  function handleEditRow(row: RegistroRow) {
+    setEditingRow({ ...row });
+  }
+
+  function handleEditFieldChange(field: string, value: string) {
+    if (!editingRow) return;
+    setEditingRow({ ...editingRow, [field]: value });
+  }
+
+  function saveEditedRow() {
+    if (!editingRow) return;
+    setEditLoading(true);
+
+    fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        applicationAccessKey: API_KEY,
+      },
+      body: JSON.stringify({
+        Action: "Edit",
+        Properties: {
+          Locale: "es-CO",
+          Timezone: "America/Bogota",
+        },
+        Rows: [editingRow],
+      }),
+    })
+      .then(async (res) => {
+        const text = await res.text();
+        console.log("Edit response:", text);
+        setSearchResults((prev) =>
+          prev.map((r) =>
+            r["CODIGO-HOGAR"] === editingRow["CODIGO-HOGAR"] ? editingRow : r
+          )
+        );
+        setEditingRow(null);
+      })
+      .catch((err) => {
+        console.error("Error al editar:", err);
+      })
+      .finally(() => setEditLoading(false));
   }
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
 
-    const usuario = localStorage.getItem("usuario");
     const date = new Date().toLocaleDateString("es-CO", {
       timeZone: "America/Bogota",
       day: "2-digit",
@@ -65,15 +161,15 @@ export default function Page() {
       year: "numeric",
     });
 
-    const objeto = {
-      "USUARIO-VIVANTO": usuario,
+    const objeto: RegistroRow = {
+      "USUARIO VIVANTO": usuario || "",
       "CODIGO-HOGAR": form.codigoHogar,
       USUARIO: form.nombreVictima,
       CEDULA: form.cedula,
       TIPIFICACION: form.tipificacion,
       FECHA: date,
       RESPONSABLE: "",
-      "TELEFONO-CELULAR": form.telefono,
+      "TELEFONO CELULAR": form.telefono,
       URL: "",
     };
 
@@ -97,12 +193,10 @@ export default function Page() {
       body: JSON.stringify(data),
     })
       .then(async (response) => {
-        const text = await response.text();
-        console.log("Respuesta AppSheet:", text);
+        await response.text();
         alert("Registro enviado correctamente");
       })
-      .catch((error) => {
-        console.error("Error al enviar:", error);
+      .catch(() => {
         alert("Error al enviar los datos");
       })
       .finally(() => setLoading(false));
@@ -117,16 +211,99 @@ export default function Page() {
     });
   }
 
+  const EDITABLE_FIELDS: { key: keyof RegistroRow; label: string }[] = [
+    { key: "CODIGO-HOGAR", label: "Codigo Hogar" },
+    { key: "USUARIO", label: "Nombre" },
+    { key: "CEDULA", label: "Cedula" },
+    { key: "TIPIFICACION", label: "Tipificacion" },
+    { key: "TELEFONO CELULAR", label: "Telefono" },
+    { key: "FECHA", label: "Fecha" },
+    { key: "URL", label: "URL" },
+    { key: "RESPONSABLE", label: "Responsable" },
+  ];
+
+  // ========== LOGIN SCREEN ==========
+  if (!usuario) {
+    return (
+      <div className="epic-page">
+        <div className="epic-particle" />
+        <div className="epic-particle" />
+        <div className="epic-particle" />
+
+        <div className="epic-container">
+          <div className="epic-card">
+            <div className="epic-icon">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
+                />
+              </svg>
+            </div>
+
+            <h1 className="epic-title">
+              Iniciar <span>Sesion</span>
+            </h1>
+            <p className="epic-subtitle">Ingresa tu usuario de Vivanto para continuar</p>
+
+            <form onSubmit={handleLogin} className="epic-form">
+              <div className="epic-field">
+                <label className="epic-label" htmlFor="usuarioVivanto">
+                  Usuario Vivanto
+                </label>
+                <input
+                  className="epic-input"
+                  id="usuarioVivanto"
+                  value={usuarioInput}
+                  onChange={(e) => setUsuarioInput(e.target.value)}
+                  placeholder="Escribe tu usuario..."
+                  autoFocus
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="epic-btn epic-btn-primary"
+                disabled={loginLoading || !usuarioInput.trim()}
+              >
+                {loginLoading ? "Ingresando..." : "Ingresar"}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ========== MAIN APP ==========
   return (
     <div className="epic-page">
-      {/* Decorative particles */}
       <div className="epic-particle" />
       <div className="epic-particle" />
       <div className="epic-particle" />
 
       <div className="epic-container">
+        {/* User badge */}
+        <div className="epic-user-badge">
+          <span className="epic-user-badge-dot" />
+          <span className="epic-user-badge-name">{usuario}</span>
+          <button
+            type="button"
+            className="epic-user-badge-logout"
+            onClick={handleLogout}
+          >
+            Salir
+          </button>
+        </div>
+
         <div className="epic-card">
-          {/* Icon */}
           <div className="epic-icon">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -162,7 +339,7 @@ export default function Page() {
               className="epic-btn epic-btn-secondary"
               disabled={searchLoading}
             >
-              {searchLoading ? "Buscando..." : "Buscar"}
+              {searchLoading ? "..." : "Buscar"}
             </button>
           </form>
 
@@ -180,7 +357,7 @@ export default function Page() {
                 name="codigoHogar"
                 value={form.codigoHogar}
                 onChange={handleChange}
-                placeholder="Ej: HG-001234"
+                placeholder="Ej: 249025-S5T6U"
               />
             </div>
 
@@ -209,7 +386,7 @@ export default function Page() {
                   name="cedula"
                   value={form.cedula}
                   onChange={handleChange}
-                  placeholder="000-0000000-0"
+                  placeholder="0000000000"
                 />
               </div>
 
@@ -223,7 +400,7 @@ export default function Page() {
                   name="telefono"
                   value={form.telefono}
                   onChange={handleChange}
-                  placeholder="(809) 000-0000"
+                  placeholder="3001234567"
                 />
               </div>
             </div>
@@ -238,7 +415,7 @@ export default function Page() {
                 name="tipificacion"
                 value={form.tipificacion}
                 onChange={handleChange}
-                placeholder="Tipo de caso"
+                placeholder="EXITOSA"
               />
             </div>
 
@@ -252,6 +429,121 @@ export default function Page() {
           </form>
         </div>
       </div>
+
+      {/* ========== MODAL ========== */}
+      {modalOpen && (
+        <div className="epic-overlay" onClick={() => { setModalOpen(false); setEditingRow(null); }}>
+          <div className="epic-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="epic-modal-header">
+              <h2 className="epic-modal-title">
+                Resultados de Busqueda
+              </h2>
+              <button
+                type="button"
+                className="epic-modal-close"
+                onClick={() => { setModalOpen(false); setEditingRow(null); }}
+                aria-label="Cerrar modal"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" width="20" height="20">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="epic-modal-body">
+              {searchResults.length === 0 ? (
+                <div className="epic-modal-empty">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" width="40" height="40">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                  </svg>
+                  <p>No se encontraron resultados</p>
+                </div>
+              ) : (
+                <div className="epic-results-list">
+                  {searchResults.map((row, idx) => (
+                    <div key={row["CODIGO-HOGAR"] || idx} className="epic-result-card">
+                      {editingRow && editingRow["CODIGO-HOGAR"] === row["CODIGO-HOGAR"] ? (
+                        /* Editing mode */
+                        <div className="epic-edit-form">
+                          {EDITABLE_FIELDS.map((f) => (
+                            <div key={f.key} className="epic-edit-field">
+                              <label className="epic-label">{f.label}</label>
+                              <input
+                                className="epic-input"
+                                value={editingRow[f.key] || ""}
+                                onChange={(e) => handleEditFieldChange(f.key, e.target.value)}
+                              />
+                            </div>
+                          ))}
+                          <div className="epic-edit-actions">
+                            <button
+                              type="button"
+                              className="epic-btn epic-btn-primary"
+                              onClick={saveEditedRow}
+                              disabled={editLoading}
+                              style={{ flex: 1 }}
+                            >
+                              {editLoading ? "Guardando..." : "Guardar"}
+                            </button>
+                            <button
+                              type="button"
+                              className="epic-btn epic-btn-secondary"
+                              onClick={() => setEditingRow(null)}
+                              style={{ flex: 1 }}
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        /* View mode */
+                        <>
+                          <div className="epic-result-header">
+                            <span className="epic-result-code">{row["CODIGO-HOGAR"]}</span>
+                            <button
+                              type="button"
+                              className="epic-btn epic-btn-secondary epic-btn-sm"
+                              onClick={() => handleEditRow(row)}
+                            >
+                              Editar
+                            </button>
+                          </div>
+                          <div className="epic-result-grid">
+                            <div className="epic-result-item">
+                              <span className="epic-result-label">Nombre</span>
+                              <span className="epic-result-value">{row.USUARIO || "---"}</span>
+                            </div>
+                            <div className="epic-result-item">
+                              <span className="epic-result-label">Cedula</span>
+                              <span className="epic-result-value">{row.CEDULA || "---"}</span>
+                            </div>
+                            <div className="epic-result-item">
+                              <span className="epic-result-label">Tipificacion</span>
+                              <span className="epic-result-value">{row.TIPIFICACION || "---"}</span>
+                            </div>
+                            <div className="epic-result-item">
+                              <span className="epic-result-label">Telefono</span>
+                              <span className="epic-result-value">{row["TELEFONO CELULAR"] || "---"}</span>
+                            </div>
+                            <div className="epic-result-item">
+                              <span className="epic-result-label">Fecha</span>
+                              <span className="epic-result-value">{row.FECHA || "---"}</span>
+                            </div>
+                            <div className="epic-result-item">
+                              <span className="epic-result-label">Usuario Vivanto</span>
+                              <span className="epic-result-value">{row["USUARIO VIVANTO"] || "---"}</span>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
