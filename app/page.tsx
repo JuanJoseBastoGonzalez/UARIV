@@ -6,23 +6,63 @@ const API_URL =
   "https://api.appsheet.com/api/v2/apps/a6401217-8537-47b2-bd5c-bbef3d515087/tables/Table%201/Action";
 const API_KEY = "V2-u5e7d-LdN4H-ttZEx-A6ea4-BRY8z-6orsP-YHqgI-wCgK4";
 
+// Lista de usuarios autorizados de Vivanto (nombre / usuario)
+const USUARIOS_VIVANTO: { nombre: string; usuario: string }[] = [
+  { nombre: "Sandra Galvis Medina", usuario: "sgalvism" },
+  { nombre: "Johan Alejandro Meneses Villamizar", usuario: "jmeneses" },
+  { nombre: "Angie Viviana Rocha Lopez", usuario: "avrochal" },
+  { nombre: "Yuly Constanza Romero Tellez", usuario: "YCROMEROT" },
+  { nombre: "Marcy Anyela Saavedra Avila", usuario: "masaavedraa" },
+  { nombre: "Lizdey Johana Castillo Tellez", usuario: "Ljcastillot" },
+  { nombre: "Maria Fernanda Ramirez Giraldo", usuario: "mframiezg" },
+  { nombre: "Vivian Giraldo", usuario: "Vgiraldo" },
+  { nombre: "Syndy Patricia Leon Rodriguez", usuario: "Sleon" },
+  { nombre: "Sebastian Alejandro Romero", usuario: "saromero" },
+  { nombre: "Lisbeth Mildreth Pertuz Cervantes", usuario: "lmpertuzc" },
+  { nombre: "Jessica Marquez Marquez Zamora", usuario: "jmmarquezz" },
+  { nombre: "Martina Cordoba Guevara", usuario: "mcordobag" },
+  { nombre: "Yessica Maria Gongora Castro", usuario: "ymgongorac" },
+  { nombre: "Laura Judith Lopez Escobar", usuario: "ljlopeze" },
+  { nombre: "Katherine Celis", usuario: "KCELIS" },
+  { nombre: "Juan Jose Basto Gonzalez", usuario: "jjbastog" },
+  { nombre: "Miladis Acosta Asis", usuario: "macostaa" },
+  { nombre: "Tatiana Torres Sanchez", usuario: "Ttorress" },
+  { nombre: "Angela Rodriguez", usuario: "arodriguez" },
+  { nombre: "Wendi Dayana Tamara Florez", usuario: "wdtamaraf" },
+  { nombre: "Olga Yiceth Gomez", usuario: "oygomez" },
+  { nombre: "Diego Armando Vernaza Duran", usuario: "davernazad" },
+  { nombre: "Santiago Albeiro Vargas Arias", usuario: "savargasa" },
+  { nombre: "Angelica Maria Gonzalez Mejia", usuario: "amgonzalezm" },
+  { nombre: "Eliza Pareja Salas", usuario: "epsalas" },
+  { nombre: "Nelcy Yasmin Davila Villamizar", usuario: "nydavilav" },
+  { nombre: "Monica Oroztegui Munoz", usuario: "morozteguim" },
+  { nombre: "Meyram Del Mar Gonzalez Lizcano", usuario: "mdgonzalezl" },
+  { nombre: "Yusneidis Vanegas Cortecero", usuario: "yvanegasc" },
+];
+
 interface RegistroRow {
-  "USUARIO VIVANTO": string;
-  "CODIGO-HOGAR": string;
-  USUARIO: string;
-  CEDULA: string;
-  TIPIFICACION: string;
-  FECHA: string;
-  RESPONSABLE: string;
-  "TELEFONO CELULAR": string;
-  URL: string;
-  [key: string]: string;
+  _RowNumber?: string | number;
+  "Row ID"?: string;
+  "USUARIO VIVANTO"?: string;
+  "CODIGO-HOGAR"?: string;
+  USUARIO?: string;
+  CEDULA?: string;
+  TIPIFICACION?: string;
+  FECHA?: string;
+  RESPONSABLE?: string;
+  "TELEFONO CELULAR"?: string;
+  URL?: string;
+  [key: string]: string | number | undefined;
 }
 
 export default function Page() {
-  const [usuario, setUsuario] = useState<string | null>(null);
+  const [usuarioData, setUsuarioData] = useState<{
+    nombre: string;
+    usuario: string;
+  } | null>(null);
   const [usuarioInput, setUsuarioInput] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
+  const [loginError, setLoginError] = useState("");
 
   const [form, setForm] = useState({
     codigoHogarSearch: "",
@@ -35,45 +75,70 @@ export default function Page() {
   const [loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
 
-  // Modal state
+  // Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [searchResults, setSearchResults] = useState<RegistroRow[]>([]);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingRow, setEditingRow] = useState<RegistroRow | null>(null);
   const [editLoading, setEditLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
 
-  // Check localStorage on mount
+  // Restore session
   useEffect(() => {
-    const saved = localStorage.getItem("usuario");
-    if (saved) setUsuario(saved);
+    const saved = localStorage.getItem("vivanto_session");
+    if (saved) {
+      try {
+        setUsuarioData(JSON.parse(saved));
+      } catch {
+        localStorage.removeItem("vivanto_session");
+      }
+    }
   }, []);
 
+  // ========== LOGIN ==========
   function handleLogin(e: FormEvent) {
     e.preventDefault();
-    if (!usuarioInput.trim()) return;
+    setLoginError("");
+    const input = usuarioInput.trim();
+    if (!input) return;
+
     setLoginLoading(true);
+
+    // Buscar por usuario (case-insensitive)
+    const found = USUARIOS_VIVANTO.find(
+      (u) => u.usuario.toLowerCase() === input.toLowerCase()
+    );
+
     setTimeout(() => {
-      localStorage.setItem("usuario", usuarioInput.trim());
-      setUsuario(usuarioInput.trim());
+      if (found) {
+        localStorage.setItem("vivanto_session", JSON.stringify(found));
+        setUsuarioData(found);
+      } else {
+        setLoginError("Usuario no autorizado. Verifica tu usuario de Vivanto.");
+      }
       setLoginLoading(false);
-    }, 600);
+    }, 500);
   }
 
   function handleLogout() {
-    localStorage.removeItem("usuario");
-    setUsuario(null);
+    localStorage.removeItem("vivanto_session");
+    setUsuarioData(null);
     setUsuarioInput("");
+    setLoginError("");
   }
 
+  // ========== FORM ==========
   function handleChange(e: ChangeEvent<HTMLInputElement>) {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
 
+  // ========== SEARCH ==========
   function searchHogar(e: FormEvent) {
     e.preventDefault();
     setSearchLoading(true);
 
     const rows = form.codigoHogarSearch.trim()
-      ? [{ "CODIGO-HOGAR": form.codigoHogarSearch }]
+      ? [{ "CODIGO-HOGAR": form.codigoHogarSearch.trim() }]
       : [];
 
     fetch(API_URL, {
@@ -93,9 +158,12 @@ export default function Page() {
     })
       .then((res) => res.json())
       .then((data) => {
-        const results: RegistroRow[] = Array.isArray(data) ? data : data.Rows || [];
+        const results: RegistroRow[] = Array.isArray(data)
+          ? data
+          : data.Rows || [];
         setSearchResults(results);
         setEditingRow(null);
+        setEditingIndex(null);
         setModalOpen(true);
       })
       .catch((err) => {
@@ -106,8 +174,10 @@ export default function Page() {
       .finally(() => setSearchLoading(false));
   }
 
-  function handleEditRow(row: RegistroRow) {
+  // ========== EDIT ==========
+  function handleEditRow(row: RegistroRow, idx: number) {
     setEditingRow({ ...row });
+    setEditingIndex(idx);
   }
 
   function handleEditFieldChange(field: string, value: string) {
@@ -136,20 +206,58 @@ export default function Page() {
     })
       .then(async (res) => {
         const text = await res.text();
-        console.log("Edit response:", text);
+        console.log("[v0] Edit response:", text);
+        // Actualizar la fila local
         setSearchResults((prev) =>
-          prev.map((r) =>
-            r["CODIGO-HOGAR"] === editingRow["CODIGO-HOGAR"] ? editingRow : r
-          )
+          prev.map((r, i) => (i === editingIndex ? { ...editingRow } : r))
         );
         setEditingRow(null);
+        setEditingIndex(null);
       })
       .catch((err) => {
         console.error("Error al editar:", err);
+        alert("Error al actualizar el registro");
       })
       .finally(() => setEditLoading(false));
   }
 
+  // ========== DELETE ==========
+  function deleteRow(row: RegistroRow, idx: number) {
+    if (!confirm("Estas seguro de que deseas eliminar este registro?")) return;
+    setDeleteLoading(idx);
+
+    fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        applicationAccessKey: API_KEY,
+      },
+      body: JSON.stringify({
+        Action: "Delete",
+        Properties: {
+          Locale: "es-CO",
+          Timezone: "America/Bogota",
+        },
+        Rows: [row],
+      }),
+    })
+      .then(async (res) => {
+        const text = await res.text();
+        console.log("[v0] Delete response:", text);
+        setSearchResults((prev) => prev.filter((_, i) => i !== idx));
+        if (editingIndex === idx) {
+          setEditingRow(null);
+          setEditingIndex(null);
+        }
+      })
+      .catch((err) => {
+        console.error("Error al eliminar:", err);
+        alert("Error al eliminar el registro");
+      })
+      .finally(() => setDeleteLoading(null));
+  }
+
+  // ========== ADD ==========
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -162,7 +270,7 @@ export default function Page() {
     });
 
     const objeto: RegistroRow = {
-      "USUARIO VIVANTO": usuario || "",
+      "USUARIO VIVANTO": usuarioData?.usuario || "",
       "CODIGO-HOGAR": form.codigoHogar,
       USUARIO: form.nombreVictima,
       CEDULA: form.cedula,
@@ -173,24 +281,20 @@ export default function Page() {
       URL: "",
     };
 
-    const data = {
-      Action: "Add",
-      Properties: {
-        Locale: "es-CO",
-        Timezone: "America/Bogota",
-      },
-      Rows: [objeto],
-    };
-
-    localStorage.setItem("data", JSON.stringify(data));
-
     fetch(API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         applicationAccessKey: API_KEY,
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        Action: "Add",
+        Properties: {
+          Locale: "es-CO",
+          Timezone: "America/Bogota",
+        },
+        Rows: [objeto],
+      }),
     })
       .then(async (response) => {
         await response.text();
@@ -211,7 +315,7 @@ export default function Page() {
     });
   }
 
-  const EDITABLE_FIELDS: { key: keyof RegistroRow; label: string }[] = [
+  const EDITABLE_FIELDS: { key: string; label: string }[] = [
     { key: "CODIGO-HOGAR", label: "Codigo Hogar" },
     { key: "USUARIO", label: "Nombre" },
     { key: "CEDULA", label: "Cedula" },
@@ -223,7 +327,7 @@ export default function Page() {
   ];
 
   // ========== LOGIN SCREEN ==========
-  if (!usuario) {
+  if (!usuarioData) {
     return (
       <div className="epic-page">
         <div className="epic-particle" />
@@ -251,7 +355,9 @@ export default function Page() {
             <h1 className="epic-title">
               Iniciar <span>Sesion</span>
             </h1>
-            <p className="epic-subtitle">Ingresa tu usuario de Vivanto para continuar</p>
+            <p className="epic-subtitle">
+              Ingresa tu usuario de Vivanto para continuar
+            </p>
 
             <form onSubmit={handleLogin} className="epic-form">
               <div className="epic-field">
@@ -262,18 +368,25 @@ export default function Page() {
                   className="epic-input"
                   id="usuarioVivanto"
                   value={usuarioInput}
-                  onChange={(e) => setUsuarioInput(e.target.value)}
-                  placeholder="Escribe tu usuario..."
+                  onChange={(e) => {
+                    setUsuarioInput(e.target.value);
+                    setLoginError("");
+                  }}
+                  placeholder="Ej: sgalvism"
                   autoFocus
                 />
               </div>
+
+              {loginError && (
+                <p className="epic-error">{loginError}</p>
+              )}
 
               <button
                 type="submit"
                 className="epic-btn epic-btn-primary"
                 disabled={loginLoading || !usuarioInput.trim()}
               >
-                {loginLoading ? "Ingresando..." : "Ingresar"}
+                {loginLoading ? "Verificando..." : "Ingresar"}
               </button>
             </form>
           </div>
@@ -293,7 +406,12 @@ export default function Page() {
         {/* User badge */}
         <div className="epic-user-badge">
           <span className="epic-user-badge-dot" />
-          <span className="epic-user-badge-name">{usuario}</span>
+          <span className="epic-user-badge-name">
+            {usuarioData.nombre}
+          </span>
+          <span className="epic-user-badge-user">
+            @{usuarioData.usuario}
+          </span>
           <button
             type="button"
             className="epic-user-badge-logout"
@@ -323,7 +441,9 @@ export default function Page() {
           <h1 className="epic-title">
             Registro de <span>Hogar</span>
           </h1>
-          <p className="epic-subtitle">Sistema de registro y consulta de hogares</p>
+          <p className="epic-subtitle">
+            Sistema de registro y consulta de hogares
+          </p>
 
           {/* Search */}
           <form onSubmit={searchHogar} className="epic-search">
@@ -432,20 +552,41 @@ export default function Page() {
 
       {/* ========== MODAL ========== */}
       {modalOpen && (
-        <div className="epic-overlay" onClick={() => { setModalOpen(false); setEditingRow(null); }}>
+        <div
+          className="epic-overlay"
+          onClick={() => {
+            setModalOpen(false);
+            setEditingRow(null);
+            setEditingIndex(null);
+          }}
+        >
           <div className="epic-modal" onClick={(e) => e.stopPropagation()}>
             <div className="epic-modal-header">
-              <h2 className="epic-modal-title">
-                Resultados de Busqueda
-              </h2>
+              <h2 className="epic-modal-title">Resultados de Busqueda</h2>
               <button
                 type="button"
                 className="epic-modal-close"
-                onClick={() => { setModalOpen(false); setEditingRow(null); }}
+                onClick={() => {
+                  setModalOpen(false);
+                  setEditingRow(null);
+                  setEditingIndex(null);
+                }}
                 aria-label="Cerrar modal"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" width="20" height="20">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                  width="20"
+                  height="20"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18 18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -453,25 +594,42 @@ export default function Page() {
             <div className="epic-modal-body">
               {searchResults.length === 0 ? (
                 <div className="epic-modal-empty">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" width="40" height="40">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    width="40"
+                    height="40"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                    />
                   </svg>
                   <p>No se encontraron resultados</p>
                 </div>
               ) : (
                 <div className="epic-results-list">
                   {searchResults.map((row, idx) => (
-                    <div key={row["CODIGO-HOGAR"] || idx} className="epic-result-card">
-                      {editingRow && editingRow["CODIGO-HOGAR"] === row["CODIGO-HOGAR"] ? (
-                        /* Editing mode */
+                    <div
+                      key={`${row["CODIGO-HOGAR"]}-${idx}`}
+                      className="epic-result-card"
+                    >
+                      {editingIndex === idx && editingRow ? (
+                        /* ===== EDITING MODE ===== */
                         <div className="epic-edit-form">
                           {EDITABLE_FIELDS.map((f) => (
                             <div key={f.key} className="epic-edit-field">
                               <label className="epic-label">{f.label}</label>
                               <input
                                 className="epic-input"
-                                value={editingRow[f.key] || ""}
-                                onChange={(e) => handleEditFieldChange(f.key, e.target.value)}
+                                value={String(editingRow[f.key] ?? "")}
+                                onChange={(e) =>
+                                  handleEditFieldChange(f.key, e.target.value)
+                                }
                               />
                             </div>
                           ))}
@@ -488,7 +646,10 @@ export default function Page() {
                             <button
                               type="button"
                               className="epic-btn epic-btn-secondary"
-                              onClick={() => setEditingRow(null)}
+                              onClick={() => {
+                                setEditingRow(null);
+                                setEditingIndex(null);
+                              }}
                               style={{ flex: 1 }}
                             >
                               Cancelar
@@ -496,42 +657,74 @@ export default function Page() {
                           </div>
                         </div>
                       ) : (
-                        /* View mode */
+                        /* ===== VIEW MODE ===== */
                         <>
                           <div className="epic-result-header">
-                            <span className="epic-result-code">{row["CODIGO-HOGAR"]}</span>
-                            <button
-                              type="button"
-                              className="epic-btn epic-btn-secondary epic-btn-sm"
-                              onClick={() => handleEditRow(row)}
-                            >
-                              Editar
-                            </button>
+                            <span className="epic-result-code">
+                              {row["CODIGO-HOGAR"]}
+                            </span>
+                            <div className="epic-result-actions">
+                              <button
+                                type="button"
+                                className="epic-btn epic-btn-secondary epic-btn-sm"
+                                onClick={() => handleEditRow(row, idx)}
+                              >
+                                Editar
+                              </button>
+                              <button
+                                type="button"
+                                className="epic-btn epic-btn-danger epic-btn-sm"
+                                onClick={() => deleteRow(row, idx)}
+                                disabled={deleteLoading === idx}
+                              >
+                                {deleteLoading === idx
+                                  ? "..."
+                                  : "Eliminar"}
+                              </button>
+                            </div>
                           </div>
                           <div className="epic-result-grid">
                             <div className="epic-result-item">
                               <span className="epic-result-label">Nombre</span>
-                              <span className="epic-result-value">{row.USUARIO || "---"}</span>
+                              <span className="epic-result-value">
+                                {row.USUARIO || "---"}
+                              </span>
                             </div>
                             <div className="epic-result-item">
                               <span className="epic-result-label">Cedula</span>
-                              <span className="epic-result-value">{row.CEDULA || "---"}</span>
+                              <span className="epic-result-value">
+                                {row.CEDULA || "---"}
+                              </span>
                             </div>
                             <div className="epic-result-item">
-                              <span className="epic-result-label">Tipificacion</span>
-                              <span className="epic-result-value">{row.TIPIFICACION || "---"}</span>
+                              <span className="epic-result-label">
+                                Tipificacion
+                              </span>
+                              <span className="epic-result-value">
+                                {row.TIPIFICACION || "---"}
+                              </span>
                             </div>
                             <div className="epic-result-item">
-                              <span className="epic-result-label">Telefono</span>
-                              <span className="epic-result-value">{row["TELEFONO CELULAR"] || "---"}</span>
+                              <span className="epic-result-label">
+                                Telefono
+                              </span>
+                              <span className="epic-result-value">
+                                {row["TELEFONO CELULAR"] || "---"}
+                              </span>
                             </div>
                             <div className="epic-result-item">
                               <span className="epic-result-label">Fecha</span>
-                              <span className="epic-result-value">{row.FECHA || "---"}</span>
+                              <span className="epic-result-value">
+                                {row.FECHA || "---"}
+                              </span>
                             </div>
                             <div className="epic-result-item">
-                              <span className="epic-result-label">Usuario Vivanto</span>
-                              <span className="epic-result-value">{row["USUARIO VIVANTO"] || "---"}</span>
+                              <span className="epic-result-label">
+                                Usuario Vivanto
+                              </span>
+                              <span className="epic-result-value">
+                                {row["USUARIO VIVANTO"] || "---"}
+                              </span>
                             </div>
                           </div>
                         </>

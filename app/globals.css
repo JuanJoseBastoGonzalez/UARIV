@@ -686,3 +686,45 @@
 .epic-edit-actions .epic-btn {
   margin-top: 0;
 }
+
+/* ===== LOGIN ERROR ===== */
+.epic-error {
+  font-size: 0.8125rem;
+  color: hsl(0, 70%, 60%);
+  background: hsla(0, 70%, 55%, 0.08);
+  border: 1px solid hsla(0, 70%, 55%, 0.2);
+  border-radius: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* ===== USER BADGE USERNAME ===== */
+.epic-user-badge-user {
+  font-size: 0.6875rem;
+  color: hsl(215, 15%, 45%);
+  font-weight: 400;
+}
+
+/* ===== RESULT ACTIONS GROUP ===== */
+.epic-result-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* ===== DANGER BUTTON ===== */
+.epic-btn-danger {
+  background: hsla(0, 70%, 55%, 0.1);
+  color: hsl(0, 70%, 65%);
+  border: 1px solid hsla(0, 70%, 55%, 0.25);
+  white-space: nowrap;
+}
+
+.epic-btn-danger:hover {
+  background: hsla(0, 70%, 55%, 0.18);
+  border-color: hsla(0, 70%, 55%, 0.4);
+  box-shadow: 0 0 15px hsla(0, 70%, 55%, 0.1);
+}
