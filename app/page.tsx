@@ -156,11 +156,17 @@ export default function Page() {
         Rows: rows,
       }),
     })
-      .then((res) => res.json())
+      .then(async (res) => {
+        const text = await res.text();
+        console.log("[v0] Search response status:", res.status);
+        console.log("[v0] Search response body:", text);
+        return JSON.parse(text);
+      })
       .then((data) => {
         const results: RegistroRow[] = Array.isArray(data)
           ? data
           : data.Rows || [];
+        console.log("[v0] Parsed results:", results.length, "rows");
         setSearchResults(results);
         setEditingRow(null);
         setEditingIndex(null);
@@ -281,38 +287,44 @@ export default function Page() {
       URL: "",
     };
 
+    const payload = {
+      Action: "Add",
+      Properties: {
+        Locale: "es-CO",
+        Timezone: "America/Bogota",
+      },
+      Rows: [objeto],
+    };
+
+    console.log("[v0] Sending Add payload:", JSON.stringify(payload, null, 2));
+
     fetch(API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         applicationAccessKey: API_KEY,
       },
-      body: JSON.stringify({
-        Action: "Add",
-        Properties: {
-          Locale: "es-CO",
-          Timezone: "America/Bogota",
-        },
-        Rows: [objeto],
-      }),
+      body: JSON.stringify(payload),
     })
       .then(async (response) => {
-        await response.text();
+        const text = await response.text();
+        console.log("[v0] Add response status:", response.status);
+        console.log("[v0] Add response body:", text);
         alert("Registro enviado correctamente");
+        setForm({
+          codigoHogar: "",
+          codigoHogarSearch: "",
+          nombreVictima: "",
+          cedula: "",
+          tipificacion: "EXITOSA",
+          telefono: "",
+        });
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error("[v0] Add error:", error);
         alert("Error al enviar los datos");
       })
       .finally(() => setLoading(false));
-
-    setForm({
-      codigoHogar: "",
-      codigoHogarSearch: "",
-      nombreVictima: "",
-      cedula: "",
-      tipificacion: "EXITOSA",
-      telefono: "",
-    });
   }
 
   const EDITABLE_FIELDS: { key: string; label: string }[] = [
