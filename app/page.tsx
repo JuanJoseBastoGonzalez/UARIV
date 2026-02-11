@@ -2,59 +2,57 @@
 
 import { useState, useEffect, type FormEvent, type ChangeEvent } from "react";
 
-const API_URL = "/api/appsheet";
+// Usar el endpoint de AppSheet directamente
+const APP_SHEET_URL = "https://api.appsheet.com/api/v2/apps/a6401217-8537-47b2-bd5c-bbef3d515087/tables/Table 1/Action";
 
 // Lista de usuarios autorizados de Vivanto (nombre / usuario)
 const USUARIOS_VIVANTO: { nombre: string; usuario: string }[] = [
-  { nombre: "Sandra Galvis Medina", usuario: "sgalvism" },
-  { nombre: "Johan Alejandro Meneses Villamizar", usuario: "jmeneses" },
-  { nombre: "Angie Viviana Rocha Lopez", usuario: "avrochal" },
-  { nombre: "Yuly Constanza Romero Tellez", usuario: "YCROMEROT" },
-  { nombre: "Marcy Anyela Saavedra Avila", usuario: "masaavedraa" },
-  { nombre: "Lizdey Johana Castillo Tellez", usuario: "Ljcastillot" },
-  { nombre: "Maria Fernanda Ramirez Giraldo", usuario: "mframiezg" },
-  { nombre: "Vivian Giraldo", usuario: "Vgiraldo" },
-  { nombre: "Syndy Patricia Leon Rodriguez", usuario: "Sleon" },
-  { nombre: "Sebastian Alejandro Romero", usuario: "saromero" },
-  { nombre: "Lisbeth Mildreth Pertuz Cervantes", usuario: "lmpertuzc" },
-  { nombre: "Jessica Marquez Marquez Zamora", usuario: "jmmarquezz" },
-  { nombre: "Martina Cordoba Guevara", usuario: "mcordobag" },
-  { nombre: "Yessica Maria Gongora Castro", usuario: "ymgongorac" },
-  { nombre: "Laura Judith Lopez Escobar", usuario: "ljlopeze" },
-  { nombre: "Katherine Celis", usuario: "KCELIS" },
-  { nombre: "Juan Jose Basto Gonzalez", usuario: "jjbastog" },
-  { nombre: "Miladis Acosta Asis", usuario: "macostaa" },
-  { nombre: "Tatiana Torres Sanchez", usuario: "Ttorress" },
-  { nombre: "Angela Rodriguez", usuario: "arodriguez" },
-  { nombre: "Wendi Dayana Tamara Florez", usuario: "wdtamaraf" },
-  { nombre: "Olga Yiceth Gomez", usuario: "oygomez" },
-  { nombre: "Diego Armando Vernaza Duran", usuario: "davernazad" },
-  { nombre: "Santiago Albeiro Vargas Arias", usuario: "savargasa" },
-  { nombre: "Angelica Maria Gonzalez Mejia", usuario: "amgonzalezm" },
-  { nombre: "Eliza Pareja Salas", usuario: "epsalas" },
-  { nombre: "Nelcy Yasmin Davila Villamizar", usuario: "nydavilav" },
-  { nombre: "Monica Oroztegui Munoz", usuario: "morozteguim" },
-  { nombre: "Meyram Del Mar Gonzalez Lizcano", usuario: "mdgonzalezl" },
-  { nombre: "Yusneidis Vanegas Cortecero", usuario: "yvanegasc" },
-];
+  { "nombre": "SANDRA GALVIS MEDINA", "usuario": "sgalvism" },
+  { "nombre": "JOHAN ALEJANDRO MENESES VILLAMIZAR", "usuario": "jmeneses" },
+  { "nombre": "ANGIE VIVIANA ROCHA LOPEZ", "usuario": "avrochal" },
+  { "nombre": "YULY CONSTANZA ROMERO TELLEZ", "usuario": "YCROMEROT" },
+  { "nombre": "MARCY ANYELA SAAVEDRA AVILA", "usuario": "masaavedraa" },
+  { "nombre": "LIZDEY JOHANA CASTILLO TELLEZ", "usuario": "Ljcastillot" },
+  { "nombre": "MARIA FERNANDA RAMIREZ GIRALDO", "usuario": "mframiezg" },
+  { "nombre": "VIVIAN GIRALDO", "usuario": "Vgiraldo" },
+  { "nombre": "SYNDY PATRICIA LEON RODRIGUEZ", "usuario": "Sleon" },
+  { "nombre": "SEBASTIAN ALEJANDRO ROMERO", "usuario": "saromero" },
+  { "nombre": "LISBETH MILDRETH PERTUZ CERVANTES", "usuario": "lmpertuzc" },
+  { "nombre": "JESSICA MARQUEZ MARQUEZ ZAMORA", "usuario": "jmmarquezz" },
+  { "nombre": "MARTINA CORDOBA GUEVARA", "usuario": "mcordobag" },
+  { "nombre": "YESSICA MARIA GONGORA CASTRO", "usuario": "ymgongorac" },
+  { "nombre": "LAURA JUDITH LOPEZ ESCOBAR", "usuario": "ljlopeze" },
+  { "nombre": "KATHERINE CELIS", "usuario": "KCELIS" },
+  { "nombre": "JUAN JOSE BASTO GONZALEZ", "usuario": "jjbastog" },
+  { "nombre": "MILADIS ACOSTA ASIS", "usuario": "macostaa" },
+  { "nombre": "TATIANA TORRES SANCHEZ", "usuario": "Ttorress" },
+  { "nombre": "ANGELA RODRIGUEZ", "usuario": "arodriguez" },
+  { "nombre": "WENDI DAYANA TAMARA FLOREZ", "usuario": "wdtamaraf" },
+  { "nombre": "OLGA YICETH GOMEZ", "usuario": "oygomez" },
+  { "nombre": "DIEGO ARMANDO VERNAZA DURAN", "usuario": "davernazad" },
+  { "nombre": "SANTIAGO ALBEIRO VARGAS ARIAS", "usuario": "savargasa" },
+  { "nombre": "ANGELICA MARIA GONZALEZ MEJIA", "usuario": "amgonzalezm" },
+  { "nombre": "ELIZA PAREJA SALAS", "usuario": "epsalas" },
+  { "nombre": "NELCY YASMIN DAVILA VILLAMIZAR", "usuario": "nydavilav" },
+  { "nombre": "MONICA OROZTEGUI MUNOZ", "usuario": "morozteguim" },
+  { "nombre": "MEYRAM DEL MAR GONZALEZ LIZCANO", "usuario": "mdgonzalezl" },
+  { "nombre": "YUSNEIDIS VANEGAS CORTECERO", "usuario": "yvanegasc" }
+]
+  ;
 
 interface RegistroRow {
-  _RowNumber?: string | number;
-  "Row ID"?: string;
-  "USUARIO VIVANTO"?: string;
-  "CODIGO-HOGAR"?: string;
-  USUARIO?: string;
-  CEDULA?: string;
-  TIPIFICACION?: string;
-  FECHA?: string;
-  RESPONSABLE?: string;
-  "TELEFONO CELULAR"?: string;
-  URL?: string;
-  [key: string]: string | number | undefined;
+  "USUARIO-VIVANTO": string;
+  "CODIGO-HOGAR": string;
+  "USUARIO": string;
+  "CEDULA": string;
+  "TIPIFICACION": string;
+  "FECHA": string;
+  "RESPONSABLE": string;
+  "TELEFONO-CELULAR": string;
+  "URL": string;
 }
 
 export default function Page() {
-  const [mounted, setMounted] = useState(false);
   const [usuarioData, setUsuarioData] = useState<{
     nombre: string;
     usuario: string;
@@ -82,7 +80,7 @@ export default function Page() {
   const [editLoading, setEditLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
 
-  // Restore session after mount (avoids hydration mismatch)
+  // Restore session
   useEffect(() => {
     const saved = localStorage.getItem("vivanto_session");
     if (saved) {
@@ -92,8 +90,34 @@ export default function Page() {
         localStorage.removeItem("vivanto_session");
       }
     }
-    setMounted(true);
   }, []);
+
+  // ========== FUNCIÓN PARA LLAMAR A APPSHEET ==========
+  async function callAppSheet(payload: any) {
+    const APPLICATION_ACCESS_KEY = "V2-u5e7d-LdN4H-ttZEx-A6ea4-BRY8z-6orsP-YHqgI-wCgK4";
+
+    try {
+      const response = await fetch(APP_SHEET_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "applicationAccessKey": APPLICATION_ACCESS_KEY,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("AppSheet API error:", response.status, errorText);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error calling AppSheet:", error);
+      throw error;
+    }
+  }
 
   // ========== LOGIN ==========
   function handleLogin(e: FormEvent) {
@@ -133,7 +157,7 @@ export default function Page() {
   }
 
   // ========== SEARCH ==========
-  function searchHogar(e: FormEvent) {
+  async function searchHogar(e: FormEvent) {
     e.preventDefault();
     setSearchLoading(true);
 
@@ -141,40 +165,35 @@ export default function Page() {
       ? [{ "CODIGO-HOGAR": form.codigoHogarSearch.trim() }]
       : [];
 
-    fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        Action: "Find",
-        Properties: {
-          Locale: "es-CO",
-          Timezone: "America/Bogota",
-        },
-        Rows: rows,
-      }),
-    })
-      .then(async (res) => {
-        const text = await res.text();
-        console.log("[v0] Search response status:", res.status);
-        console.log("[v0] Search response body:", text);
-        return JSON.parse(text);
-      })
-      .then((data) => {
-        const results: RegistroRow[] = Array.isArray(data)
-          ? data
-          : data.Rows || [];
-        console.log("[v0] Parsed results:", results.length, "rows");
-        setSearchResults(results);
-        setEditingRow(null);
-        setEditingIndex(null);
-        setModalOpen(true);
-      })
-      .catch((err) => {
-        console.error(err);
-        setSearchResults([]);
-        setModalOpen(true);
-      })
-      .finally(() => setSearchLoading(false));
+    const payload = {
+      Action: "Find",
+      Properties: {
+        Locale: "es-CO",
+        Timezone: "America/Bogota",
+      },
+      Rows: rows,
+    };
+
+    try {
+      console.log("[v0] Search payload:", payload);
+      const data = await callAppSheet(payload);
+
+      const results: RegistroRow[] = Array.isArray(data)
+        ? data
+        : data.Rows || [];
+      console.log("[v0] Parsed results:", results.length, "rows");
+      setSearchResults(results);
+      setEditingRow(null);
+      setEditingIndex(null);
+      setModalOpen(true);
+    } catch (err) {
+      console.error("Search error:", err);
+      setSearchResults([]);
+      setModalOpen(true);
+      alert("Error al buscar registros. Verifica la conexión.");
+    } finally {
+      setSearchLoading(false);
+    }
   }
 
   // ========== EDIT ==========
@@ -183,141 +202,178 @@ export default function Page() {
     setEditingIndex(idx);
   }
 
-  function handleEditFieldChange(field: string, value: string) {
+  function handleEditFieldChange(field: keyof RegistroRow, value: string) {
     if (!editingRow) return;
     setEditingRow({ ...editingRow, [field]: value });
   }
 
-  function saveEditedRow() {
-    if (!editingRow || editingIndex === null) return;
+  async function saveEditedRow() {
+    if (!editingRow || !editingRow["CODIGO-HOGAR"]) {
+      alert("No se puede editar: falta el código de hogar");
+      return;
+    }
+
     setEditLoading(true);
 
-    // La PK es CODIGO-HOGAR del registro original (no se puede cambiar)
-    const originalRow = searchResults[editingIndex];
-    const rowToSend: RegistroRow = {
-      "CODIGO-HOGAR": originalRow["CODIGO-HOGAR"],
+    // Crear el objeto con TODOS los campos requeridos por AppSheet
+    const rowToUpdate: RegistroRow = {
+      "USUARIO-VIVANTO": String(editingRow["USUARIO-VIVANTO"] || usuarioData?.usuario || ""),
+      "CODIGO-HOGAR": String(editingRow["CODIGO-HOGAR"] || ""),
+      "USUARIO": String(editingRow["USUARIO"] || ""),
+      "CEDULA": String(editingRow["CEDULA"] || ""),
+      "TIPIFICACION": String(editingRow["TIPIFICACION"] || "EXITOSA"),
+      "FECHA": String(editingRow["FECHA"] || ""),
+      "RESPONSABLE": String(editingRow["RESPONSABLE"] || usuarioData?.nombre || ""),
+      "TELEFONO-CELULAR": String(editingRow["TELEFONO-CELULAR"] || ""),
+      "URL": String(editingRow["URL"] || "")
     };
-    // Solo enviar los campos editables que cambiaron
-    for (const f of EDITABLE_FIELDS) {
-      rowToSend[f.key] = editingRow[f.key] ?? "";
-    }
-    // Incluir USUARIO VIVANTO
-    rowToSend["USUARIO VIVANTO"] = editingRow["USUARIO VIVANTO"] ?? originalRow["USUARIO VIVANTO"] ?? "";
 
     const payload = {
       Action: "Edit",
       Properties: {
         Locale: "es-CO",
-        Timezone: "America/Bogota",
+        Timezone: "America/Bogota"
       },
-      Rows: [rowToSend],
+      Rows: [rowToUpdate]
     };
 
-    console.log("[v0] Edit payload:", JSON.stringify(payload, null, 2));
+    try {
+      console.log("[v0] Edit payload:", payload);
+      await callAppSheet(payload);
 
-    fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    })
-      .then(async (res) => {
-        const text = await res.text();
-        console.log("[v0] Edit response status:", res.status);
-        console.log("[v0] Edit response body:", text);
-        if (!res.ok) {
-          throw new Error(text);
-        }
-        // Actualizar la fila local con los datos editados
-        const updatedRow = { ...originalRow, ...rowToSend };
-        setSearchResults((prev) =>
-          prev.map((r, i) => (i === editingIndex ? updatedRow : r))
-        );
-        setEditingRow(null);
-        setEditingIndex(null);
-      })
-      .catch((err) => {
-        console.error("[v0] Error al editar:", err);
-        alert("Error al actualizar el registro");
-      })
-      .finally(() => setEditLoading(false));
+      // Actualizar la fila local con los datos editados
+      setSearchResults((prev) =>
+        prev.map((r, i) =>
+          i === editingIndex ? { ...rowToUpdate } : r
+        )
+      );
+      setEditingRow(null);
+      setEditingIndex(null);
+      alert("✅ Registro actualizado correctamente");
+    } catch (err) {
+      console.error("Error al editar:", err);
+      alert("❌ Error al actualizar el registro");
+    } finally {
+      setEditLoading(false);
+    }
   }
 
   // ========== DELETE ==========
-  function deleteRow(row: RegistroRow, idx: number) {
-    if (!confirm("Estas seguro de que deseas eliminar este registro?")) return;
+  async function deleteRow(row: RegistroRow, idx: number) {
+    if (!confirm("¿Estás seguro de que deseas eliminar este registro?")) return;
+
+    if (!row["CODIGO-HOGAR"]) {
+      alert("No se puede eliminar: falta el código de hogar");
+      return;
+    }
+
     setDeleteLoading(idx);
 
-    fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        Action: "Delete",
-        Properties: {
-          Locale: "es-CO",
-          Timezone: "America/Bogota",
-        },
-        Rows: [{ "CODIGO-HOGAR": row["CODIGO-HOGAR"] }],
-      }),
-    })
-      .then(async (res) => {
-        const text = await res.text();
-        console.log("[v0] Delete response:", text);
-        setSearchResults((prev) => prev.filter((_, i) => i !== idx));
-        if (editingIndex === idx) {
-          setEditingRow(null);
-          setEditingIndex(null);
-        }
-      })
-      .catch((err) => {
-        console.error("Error al eliminar:", err);
-        alert("Error al eliminar el registro");
-      })
-      .finally(() => setDeleteLoading(null));
+    const payload = {
+      Action: "Delete",
+      Properties: {
+        Locale: "es-CO",
+        Timezone: "America/Bogota"
+      },
+      Rows: [{
+        "CODIGO-HOGAR": String(row["CODIGO-HOGAR"] || "")
+      }]
+    };
+
+    try {
+      console.log("[v0] Delete payload:", payload);
+      await callAppSheet(payload);
+
+      setSearchResults((prev) => prev.filter((_, i) => i !== idx));
+      if (editingIndex === idx) {
+        setEditingRow(null);
+        setEditingIndex(null);
+      }
+      alert("✅ Registro eliminado correctamente");
+    } catch (err) {
+      console.error("Error al eliminar:", err);
+      alert("❌ Error al eliminar el registro");
+    } finally {
+      setDeleteLoading(null);
+    }
   }
 
   // ========== ADD ==========
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+
+    // Validación
+    if (!form.codigoHogar.trim()) {
+      alert("El código de hogar es requerido");
+      return;
+    }
+
+    if (!form.nombreVictima.trim()) {
+      alert("El nombre de la víctima es requerido");
+      return;
+    }
+
+    // Validar que el usuario esté logueado
+    if (!usuarioData) {
+      alert("Error: No hay usuario logueado");
+      return;
+    }
+
     setLoading(true);
 
-    const now = new Date(
-      new Date().toLocaleString("en-US", { timeZone: "America/Bogota" })
-    );
-    const date = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
+    // Formato de fecha como en el segundo código
+    const date = new Date().toLocaleDateString('es-CO', {
+      timeZone: 'America/Bogota',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
 
-    const objeto: RegistroRow = {
-      "USUARIO VIVANTO": usuarioData?.usuario || "",
-      "CODIGO-HOGAR": form.codigoHogar,
-      USUARIO: form.nombreVictima,
-      CEDULA: form.cedula,
-      TIPIFICACION: form.tipificacion,
-      FECHA: date,
-      RESPONSABLE: "",
-      "TELEFONO CELULAR": form.telefono,
-      URL: "",
+    // Crear objeto exactamente como en el segundo código con RESPONSABLE
+    const objeto = {
+      "USUARIO-VIVANTO": usuarioData.usuario,
+      "CODIGO-HOGAR": form.codigoHogar.trim(),
+      "USUARIO": form.nombreVictima.trim(),
+      "CEDULA": form.cedula.trim(),
+      "TIPIFICACION": form.tipificacion,
+      "FECHA": date,
+      "RESPONSABLE": usuarioData.nombre, // NOMBRE DEL USUARIO LOGEADO
+      "TELEFONO-CELULAR": form.telefono.trim(),
+      "URL": ""
     };
 
-    const payload = {
+    // Crear payload exactamente como en el segundo código
+    const data = {
       Action: "Add",
       Properties: {
         Locale: "es-CO",
-        Timezone: "America/Bogota",
+        Timezone: "America/Bogota"
       },
-      Rows: [objeto],
+      Rows: [objeto]
     };
 
-    console.log("[v0] Sending Add payload:", JSON.stringify(payload, null, 2));
+    // Guardar respaldo (opcional)
+    localStorage.setItem("data", JSON.stringify(data));
 
-    fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    })
-      .then(async (response) => {
-        const text = await response.text();
-        console.log("[v0] Add response status:", response.status);
-        console.log("[v0] Add response body:", text);
-        alert("Registro enviado correctamente");
+    console.log("Datos enviados:", data);
+
+    try {
+      // Llamar directamente a la API como en el segundo código
+      const response = await fetch(APP_SHEET_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'applicationAccessKey': 'V2-u5e7d-LdN4H-ttZEx-A6ea4-BRY8z-6orsP-YHqgI-wCgK4'
+        },
+        body: JSON.stringify(data)
+      });
+
+      const text = await response.text();
+      console.log("Respuesta AppSheet:", text);
+
+      if (response.ok) {
+        alert("✅ Registro enviado correctamente");
+        // Limpiar formulario
         setForm({
           codigoHogar: "",
           codigoHogarSearch: "",
@@ -326,23 +382,27 @@ export default function Page() {
           tipificacion: "EXITOSA",
           telefono: "",
         });
-      })
-      .catch((error) => {
-        console.error("[v0] Add error:", error);
-        alert("Error al enviar los datos");
-      })
-      .finally(() => setLoading(false));
+      } else {
+        alert("❌ Error al enviar los datos");
+      }
+    } catch (error) {
+      console.error("Error al enviar:", error);
+      alert("❌ Error de conexión al enviar los datos");
+    } finally {
+      setLoading(false);
+    }
   }
 
-  // CODIGO-HOGAR es la Primary Key, no se edita
-  const EDITABLE_FIELDS: { key: string; label: string }[] = [
+  const EDITABLE_FIELDS: { key: keyof RegistroRow; label: string }[] = [
+    { key: "CODIGO-HOGAR", label: "Código Hogar" },
     { key: "USUARIO", label: "Nombre" },
-    { key: "CEDULA", label: "Cedula" },
-    { key: "TIPIFICACION", label: "Tipificacion" },
-    { key: "TELEFONO CELULAR", label: "Telefono" },
+    { key: "CEDULA", label: "Cédula" },
+    { key: "TIPIFICACION", label: "Tipificación" },
+    { key: "TELEFONO-CELULAR", label: "Teléfono" },
     { key: "FECHA", label: "Fecha" },
     { key: "URL", label: "URL" },
     { key: "RESPONSABLE", label: "Responsable" },
+    { key: "USUARIO-VIVANTO", label: "Usuario Vivanto" },
   ];
 
   // ========== LOGIN SCREEN ==========
@@ -471,7 +531,7 @@ export default function Page() {
               name="codigoHogarSearch"
               value={form.codigoHogarSearch}
               onChange={handleChange}
-              placeholder="Buscar por codigo de hogar..."
+              placeholder="Buscar por código de hogar..."
             />
             <button
               type="submit"
@@ -488,7 +548,7 @@ export default function Page() {
           <form onSubmit={handleSubmit} className="epic-form">
             <div className="epic-field">
               <label className="epic-label" htmlFor="codigoHogar">
-                Codigo Hogar
+                Código Hogar
               </label>
               <input
                 className="epic-input"
@@ -497,12 +557,13 @@ export default function Page() {
                 value={form.codigoHogar}
                 onChange={handleChange}
                 placeholder="Ej: 249025-S5T6U"
+                required
               />
             </div>
 
             <div className="epic-field">
               <label className="epic-label" htmlFor="nombreVictima">
-                Nombre Victima
+                Nombre Víctima
               </label>
               <input
                 className="epic-input"
@@ -511,13 +572,14 @@ export default function Page() {
                 value={form.nombreVictima}
                 onChange={handleChange}
                 placeholder="Nombre completo"
+                required
               />
             </div>
 
             <div className="epic-row">
               <div className="epic-field">
                 <label className="epic-label" htmlFor="cedula">
-                  Cedula
+                  Cédula
                 </label>
                 <input
                   className="epic-input"
@@ -531,7 +593,7 @@ export default function Page() {
 
               <div className="epic-field">
                 <label className="epic-label" htmlFor="telefono">
-                  Telefono
+                  Teléfono
                 </label>
                 <input
                   className="epic-input"
@@ -546,7 +608,7 @@ export default function Page() {
 
             <div className="epic-field">
               <label className="epic-label" htmlFor="tipificacion">
-                Tipificacion
+                Tipificación
               </label>
               <select
                 className="epic-input epic-select"
@@ -587,7 +649,7 @@ export default function Page() {
         >
           <div className="epic-modal" onClick={(e) => e.stopPropagation()}>
             <div className="epic-modal-header">
-              <h2 className="epic-modal-title">Resultados de Busqueda</h2>
+              <h2 className="epic-modal-title">Resultados de Búsqueda</h2>
               <button
                 type="button"
                 className="epic-modal-close"
@@ -646,22 +708,13 @@ export default function Page() {
                       {editingIndex === idx && editingRow ? (
                         /* ===== EDITING MODE ===== */
                         <div className="epic-edit-form">
-                          <div className="epic-edit-field">
-                            <label className="epic-label">Codigo Hogar (PK)</label>
-                            <input
-                              className="epic-input"
-                              value={String(row["CODIGO-HOGAR"] ?? "")}
-                              disabled
-                              style={{ opacity: 0.5, cursor: "not-allowed" }}
-                            />
-                          </div>
                           {EDITABLE_FIELDS.map((f) => (
                             <div key={f.key} className="epic-edit-field">
                               <label className="epic-label">{f.label}</label>
                               {f.key === "TIPIFICACION" ? (
                                 <select
                                   className="epic-input epic-select"
-                                  value={String(editingRow[f.key] ?? "EXITOSA")}
+                                  value={String(editingRow[f.key] || "EXITOSA")}
                                   onChange={(e) =>
                                     handleEditFieldChange(
                                       f.key,
@@ -677,7 +730,7 @@ export default function Page() {
                               ) : (
                                 <input
                                   className="epic-input"
-                                  value={String(editingRow[f.key] ?? "")}
+                                  value={String(editingRow[f.key] || "")}
                                   onChange={(e) =>
                                     handleEditFieldChange(
                                       f.key,
@@ -746,14 +799,14 @@ export default function Page() {
                               </span>
                             </div>
                             <div className="epic-result-item">
-                              <span className="epic-result-label">Cedula</span>
+                              <span className="epic-result-label">Cédula</span>
                               <span className="epic-result-value">
                                 {row.CEDULA || "---"}
                               </span>
                             </div>
                             <div className="epic-result-item">
                               <span className="epic-result-label">
-                                Tipificacion
+                                Tipificación
                               </span>
                               <span className="epic-result-value">
                                 {row.TIPIFICACION || "---"}
@@ -761,10 +814,10 @@ export default function Page() {
                             </div>
                             <div className="epic-result-item">
                               <span className="epic-result-label">
-                                Telefono
+                                Teléfono
                               </span>
                               <span className="epic-result-value">
-                                {row["TELEFONO CELULAR"] || "---"}
+                                {row["TELEFONO-CELULAR"] || "---"}
                               </span>
                             </div>
                             <div className="epic-result-item">
@@ -778,7 +831,15 @@ export default function Page() {
                                 Usuario Vivanto
                               </span>
                               <span className="epic-result-value">
-                                {row["USUARIO VIVANTO"] || "---"}
+                                {row["USUARIO-VIVANTO"] || "---"}
+                              </span>
+                            </div>
+                            <div className="epic-result-item">
+                              <span className="epic-result-label">
+                                Responsable
+                              </span>
+                              <span className="epic-result-value">
+                                {row.RESPONSABLE || "---"}
                               </span>
                             </div>
                           </div>
