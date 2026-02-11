@@ -2,9 +2,7 @@
 
 import { useState, useEffect, type FormEvent, type ChangeEvent } from "react";
 
-const API_URL =
-  "https://api.appsheet.com/api/v2/apps/a6401217-8537-47b2-bd5c-bbef3d515087/tables/Table%201/Action";
-const API_KEY = "V2-u5e7d-LdN4H-ttZEx-A6ea4-BRY8z-6orsP-YHqgI-wCgK4";
+const API_URL = "/api/appsheet";
 
 // Lista de usuarios autorizados de Vivanto (nombre / usuario)
 const USUARIOS_VIVANTO: { nombre: string; usuario: string }[] = [
@@ -143,10 +141,7 @@ export default function Page() {
 
     fetch(API_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        applicationAccessKey: API_KEY,
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         Action: "Find",
         Properties: {
@@ -197,10 +192,7 @@ export default function Page() {
 
     fetch(API_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        applicationAccessKey: API_KEY,
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         Action: "Edit",
         Properties: {
@@ -234,17 +226,14 @@ export default function Page() {
 
     fetch(API_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        applicationAccessKey: API_KEY,
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         Action: "Delete",
         Properties: {
           Locale: "es-CO",
           Timezone: "America/Bogota",
         },
-        Rows: [row],
+        Rows: [{ "CODIGO-HOGAR": row["CODIGO-HOGAR"] }],
       }),
     })
       .then(async (res) => {
@@ -268,12 +257,10 @@ export default function Page() {
     e.preventDefault();
     setLoading(true);
 
-    const date = new Date().toLocaleDateString("es-CO", {
-      timeZone: "America/Bogota",
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+    const now = new Date(
+      new Date().toLocaleString("en-US", { timeZone: "America/Bogota" })
+    );
+    const date = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
 
     const objeto: RegistroRow = {
       "USUARIO VIVANTO": usuarioData?.usuario || "",
@@ -300,10 +287,7 @@ export default function Page() {
 
     fetch(API_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        applicationAccessKey: API_KEY,
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     })
       .then(async (response) => {
