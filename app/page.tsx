@@ -529,14 +529,20 @@ export default function Page() {
               <label className="epic-label" htmlFor="tipificacion">
                 Tipificacion
               </label>
-              <input
-                className="epic-input"
+              <select
+                className="epic-input epic-select"
                 id="tipificacion"
                 name="tipificacion"
                 value={form.tipificacion}
-                onChange={handleChange}
-                placeholder="EXITOSA"
-              />
+                onChange={(e) =>
+                  setForm({ ...form, tipificacion: e.target.value })
+                }
+              >
+                <option value="EXITOSA">EXITOSA</option>
+                <option value="EXITOSA SIN TIPIFICAR">
+                  EXITOSA SIN TIPIFICAR
+                </option>
+              </select>
             </div>
 
             <button
@@ -624,13 +630,34 @@ export default function Page() {
                           {EDITABLE_FIELDS.map((f) => (
                             <div key={f.key} className="epic-edit-field">
                               <label className="epic-label">{f.label}</label>
-                              <input
-                                className="epic-input"
-                                value={String(editingRow[f.key] ?? "")}
-                                onChange={(e) =>
-                                  handleEditFieldChange(f.key, e.target.value)
-                                }
-                              />
+                              {f.key === "TIPIFICACION" ? (
+                                <select
+                                  className="epic-input epic-select"
+                                  value={String(editingRow[f.key] ?? "EXITOSA")}
+                                  onChange={(e) =>
+                                    handleEditFieldChange(
+                                      f.key,
+                                      e.target.value
+                                    )
+                                  }
+                                >
+                                  <option value="EXITOSA">EXITOSA</option>
+                                  <option value="EXITOSA SIN TIPIFICAR">
+                                    EXITOSA SIN TIPIFICAR
+                                  </option>
+                                </select>
+                              ) : (
+                                <input
+                                  className="epic-input"
+                                  value={String(editingRow[f.key] ?? "")}
+                                  onChange={(e) =>
+                                    handleEditFieldChange(
+                                      f.key,
+                                      e.target.value
+                                    )
+                                  }
+                                />
+                              )}
                             </div>
                           ))}
                           <div className="epic-edit-actions">
