@@ -3,7 +3,7 @@
 import { useState, useEffect, type FormEvent, type ChangeEvent } from "react";
 
 // Usar el endpoint de AppSheet directamente
-const APP_SHEET_URL = "https://api.appsheet.com/api/v2/apps/a6401217-8537-47b2-bd5c-bbef3d515087/tables/Table 1/Action";
+const APP_SHEET_URL = "https://api.appsheet.com/api/v2/apps/a6401217-8537-47b2-bd5c-bbef3d515087/tables/Table%201/Action";
 
 // Lista de usuarios autorizados de Vivanto (nombre / usuario)
 const USUARIOS_VIVANTO: { nombre: string; usuario: string }[] = [
@@ -621,6 +621,9 @@ export default function Page() {
                 }
               >
                 <option value="EXITOSA">EXITOSA</option>
+                <option value="EXITOSA TIPI. MANUAL">
+                  TIPIFICADA MANUAL
+                </option>
                 <option value="EXITOSA SIN TIPIFICAS">
                   EXITOSA SIN TIPIFICAS
                 </option>
